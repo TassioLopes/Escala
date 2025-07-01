@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Escala de Trabalho</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .month-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, input {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:hover, input:hover {
+            border-color: #3498db;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+            margin-left: auto;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .people-section {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .people-section h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .people-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .person-chip {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: move;
+            transition: all 0.3s ease;
+        }
+
+        .person-chip:hover {
+            background: #bbdefb;
+            transform: scale(1.05);
+        }
+
+        .person-chip.dragging {
+            opacity: 0.5;
+        }
+
+        .add-person {
+            display: flex;
+            gap: 10px;
+            max-width: 300px;
+        }
+
+        .add-person input {
+            flex: 1;
+        }
+
+        .calendar-section {
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .day-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .day-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .day-badge {
+            background: #3498db;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .day-date {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .time-slot {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 100px;
+            transition: all 0.3s ease;
+        }
+
+        .time-slot.drag-over {
+            background: #e3f2fd;
+            border-color: #3498db;
+        }
+
+        .time-slot-header {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .assigned-people {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .assigned-person {
+            background: #d4edda;
+            color: #155724;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .assigned-person:hover {
+            background: #c3e6cb;
+        }
+
+        .remove-btn {
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 800px;
+            margin: 0 auto;
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .close-modal:hover {
+            color: #495057;
+        }
+
+        @media (max-width: 768px) {
+            .time-slots {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-success {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗓️ Gerador de Escala de Trabalho</h1>
+            <p>Configure a escala mensal - Quartas (noite) e Domingos (manhã e tarde)</p>
+        </div>
+
+        <div class="controls">
+            <div class="month-selector">
+                <select id="month">
+                    <option value="0">Janeiro</option>
+                    <option value="1">Fevereiro</option>
+                    <option value="2">Março</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Maio</option>
+                    <option value="5">Junho</option>
+                    <option value="6">Julho</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Setembro</option>
+                    <option value="9">Outubro</option>
+                    <option value="10">Novembro</option>
+                    <option value="11">Dezembro</option>
+                </select>
+                <input type="number" id="year" min="2024" max="2030" value="2025">
+                <button class="btn-primary" onclick="generateCalendar()">Gerar Calendário</button>
+            </div>
+            <button class="btn-success" onclick="showPreview()">👁️ Visualizar Escala</button>
+        </div>
+
+        <div class="people-section">
+            <h3>👥 Pessoas Disponíveis (arraste para os horários)</h3>
+            <div class="people-list" id="peopleList">
+                <div class="person-chip" draggable="true">Eduarda</div>
+                <div class="person-chip" draggable="true">Julya</div>
+                <div class="person-chip" draggable="true">Kevyn</div>
+                <div class="person-chip" draggable="true">Mariana</div>
+                <div class="person-chip" draggable="true">Marlon</div>
+                <div class="person-chip" draggable="true">Matheus</div>
+                <div class="person-chip" draggable="true">Márcia</div>
+                <div class="person-chip" draggable="true">Nicole</div>
+                <div class="person-chip" draggable="true">Tássio</div>
+                <div class="person-chip" draggable="true">Vitória</div>
+                <div class="person-chip" draggable="true">Vivian</div>
+            </div>
+            <div class="add-person">
+                <input type="text" id="newPersonName" placeholder="Adicionar nova pessoa">
+                <button class="btn-primary" onclick="addPerson()">➕ Adicionar</button>
+            </div>
+        </div>
+
+        <div class="calendar-section" id="calendarSection"></div>
+    </div>
+
+    <div class="preview-modal" id="previewModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closePreview()">&times;</span>
+            <div id="previewContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let draggedPerson = null;
+        const schedule = {};
+
+        function initDragAndDrop() {
+            document.querySelectorAll('.person-chip').forEach(chip => {
+                chip.addEventListener('dragstart', (e) => {
+                    draggedPerson = e.target.textContent;
+                    e.target.classList.add('dragging');
+                });
+
+                chip.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('dragging');
+                });
+            });
+
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    slot.classList.add('drag-over');
+                });
+
+                slot.addEventListener('dragleave', (e) => {
+                    slot.classList.remove('drag-over');
+                });
+
+                slot.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    slot.classList.remove('drag-over');
+
+                    const day = slot.dataset.day;
+                    const time = slot.dataset.time;
+
+                    if (!schedule[day]) schedule[day] = {};
+                    if (!schedule[day][time]) schedule[day][time] = [];
+
+                    if (!schedule[day][time].includes(draggedPerson)) {
+                        schedule[day][time].push(draggedPerson);
+                        updateSlotDisplay(slot, schedule[day][time]);
+                    }
+                });
+            });
+        }
+
+        function updateSlotDisplay(slot, people) {
+            const assignedDiv = slot.querySelector('.assigned-people');
+            assignedDiv.innerHTML = people.map(person => `
+                <div class="assigned-person">
+                    ${person}
+                    <span class="remove-btn" onclick="removePerson('${slot.dataset.day}', '${slot.dataset.time}', '${person}')">×</span>
+                </div>
+            `).join('');
+        }
+
+        function removePerson(day, time, person) {
+            if (schedule[day] && schedule[day][time]) {
+                schedule[day][time] = schedule[day][time].filter(p => p !== person);
+                const slot = document.querySelector(`[data-day="${day}"][data-time="${time}"]`);
+                updateSlotDisplay(slot, schedule[day][time]);
+            }
+        }
+
+        function addPerson() {
+            const input = document.getElementById('newPersonName');
+            const name = input.value.trim();
+
+            if (name) {
+                const peopleList = document.getElementById('peopleList');
+                const newChip = document.createElement('div');
+                newChip.className = 'person-chip';
+                newChip.draggable = true;
+                newChip.textContent = name;
+                peopleList.appendChild(newChip);
+                input.value = '';
+
+                initDragAndDrop();
+            }
+        }
+
+        function generateCalendar() {
+            const month = parseInt(document.getElementById('month').value);
+            const year = parseInt(document.getElementById('year').value);
+            const calendarSection = document.getElementById('calendarSection');
+
+            calendarSection.innerHTML = '';
+
+            const date = new Date(year, month, 1);
+            const monthName = date.toLocaleDateString('pt-BR', { month: 'long' });
+
+            calendarSection.innerHTML = `<h2 style="margin-bottom: 20px; color: #2c3e50;">📅 ${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}</h2>`;
+
+            while (date.getMonth() === month) {
+                const dayOfWeek = date.getDay();
+
+                if (dayOfWeek === 0 || dayOfWeek === 3) { // Domingo ou Quarta
+                    const dayCard = createDayCard(date);
+                    calendarSection.innerHTML += dayCard;
+                }
+
+                date.setDate(date.getDate() + 1);
+            }
+
+            initDragAndDrop();
+        }
+
+        function createDayCard(date) {
+            const day = date.getDate();
+            const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' });
+            const dateStr = `${day}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+            const isWednesday = date.getDay() === 3;
+
+            const morningTime = "08:20";
+            const eveningTime = isWednesday ? "19:15" : "17:45";
+
+            if (isWednesday) {
+                // Quarta-feira só tem turno da noite
+                return `
+                    <div class="day-card">
+                        <div class="day-header">
+                            <span class="day-badge">${day} (${dayName.charAt(0).toUpperCase() + dayName.slice(1)})</span>
+                            <span class="day-date">${dateStr}</span>
+                        </div>
+                        <div class="time-slots" style="grid-template-columns: 1fr;">
+                            <div class="time-slot" data-day="${dateStr}" data-time="${eveningTime}">
+                                <div class="time-slot-header">🌙 Noite - ${eveningTime}</div>
+                                <div class="assigned-people"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Domingo tem manhã e tarde
+                return `
+                    <div class="day-card">
+                        <div class="day-header">
+                            <span class="day-badge">${day} (${dayName.charAt(0).toUpperCase() + dayName.slice(1)})</span>
+                            <span class="day-date">${dateStr}</span>
+                        </div>
+                        <div class="time-slots">
+                            <div class="time-slot" data-day="${dateStr}" data-time="${morningTime}">
+                                <div class="time-slot-header">🌅 Manhã - ${morningTime}</div>
+                                <div class="assigned-people"></div>
+                            </div>
+                            <div class="time-slot" data-day="${dateStr}" data-time="${eveningTime}">
+                                <div class="time-slot-header">🌙 Tarde - ${eveningTime}</div>
+                                <div class="assigned-people"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function showPreview() {
+            const modal = document.getElementById('previewModal');
+            const content = document.getElementById('previewContent');
+
+            let html = `
+                <h2 style="text-align: center; margin-bottom: 30px;">📋 Prévia da Escala</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6;">Data e Horário</th>
+                            <th style="padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6;">Responsável Escalado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            const sortedDays = Object.keys(schedule).sort((a, b) => {
+                const [dayA, monthA] = a.split('/').map(Number);
+                const [dayB, monthB] = b.split('/').map(Number);
+                return monthA - monthB || dayA - dayB;
+            });
+
+            sortedDays.forEach(day => {
+                const times = Object.keys(schedule[day]).sort();
+                times.forEach(time => {
+                    if (schedule[day][time].length > 0) {
+                        const peopleList = schedule[day][time].join(', ');
+                        html += `
+                            <tr>
+                                <td style="padding: 15px; border-bottom: 1px solid #e9ecef;">
+                                    <strong>${day}</strong> - ${time}
+                                </td>
+                                <td style="padding: 15px; border-bottom: 1px solid #e9ecef; color: #27ae60;">
+                                    ${peopleList}
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+            });
+
+            html += `
+                    </tbody>
+                </table>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn-primary" onclick="exportSchedule()">📥 Exportar Escala</button>
+                </div>
+            `;
+
+            content.innerHTML = html;
+            modal.style.display = 'block';
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+
+        function exportSchedule() {
+            // Criar dados formatados agrupando pessoas no mesmo horário
+            const scheduleData = [];
+
+            const sortedDays = Object.keys(schedule).sort((a, b) => {
+                const [dayA, monthA] = a.split('/').map(Number);
+                const [dayB, monthB] = b.split('/').map(Number);
+                return monthA - monthB || dayA - dayB;
+            });
+
+            sortedDays.forEach(day => {
+                const times = Object.keys(schedule[day]).sort();
+                times.forEach(time => {
+                    if (schedule[day][time].length > 0) {
+                        const [dayNum, month] = day.split('/');
+                        const date = new Date(document.getElementById('year').value, parseInt(month) - 1, parseInt(dayNum));
+                        const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' });
+
+                        scheduleData.push({
+                            day: `${dayNum} (${dayName.charAt(0).toUpperCase() + dayName.slice(1)})`,
+                            time: time,
+                            people: schedule[day][time].join(', ')
+                        });
+                    }
+                });
+            });
+
+            // Criar HTML da escala formatada
+            const html = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escala de Trabalho</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .table-container {
+            padding: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f3f5;
+            transition: all 0.3s ease;
+        }
+
+        tr:hover td {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+        }
+
+        .date-cell {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .day-badge {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .time {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .responsible-cell {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #27ae60;
+            font-weight: 500;
+        }
+
+        .responsible-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .check-icon {
+            color: #27ae60;
+            font-size: 18px;
+        }
+
+        .stats {
+            background: #f8f9fa;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            th, td {
+                padding: 12px 16px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Escala de Trabalho</h1>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data e Horário</th>
+                        <th>Responsável Escalado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${scheduleData.map(item => `
+                    <tr>
+                        <td class="date-cell">
+                            <span class="day-badge">${item.day}</span>
+                            <span class="time">${item.time}</span>
+                        </td>
+                        <td class="responsible-cell">
+                            <span class="responsible-name">
+                                <span>👤</span>
+                                <span>${item.people}</span>
+                            </span>
+                            <span class="check-icon">✓</span>
+                        </td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">${scheduleData.length}</div>
+                <div class="stat-label">Total de Escalas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${new Set(scheduleData.flatMap(item => item.people.split(', '))).size}</div>
+                <div class="stat-label">Pessoas Escaladas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${new Set(scheduleData.map(item => item.day)).size}</div>
+                <div class="stat-label">Dias com Escala</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+
+            // Criar blob e fazer download
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `escala-${document.getElementById('month').selectedOptions[0].text}-${document.getElementById('year').value}.html`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Inicializar com o mês atual
+        window.onload = () => {
+            const now = new Date();
+            document.getElementById('month').value = now.getMonth();
+            document.getElementById('year').value = now.getFullYear();
+            generateCalendar();
+        };
+
+        // Adicionar pessoa com Enter
+        document.getElementById('newPersonName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addPerson();
+            }
+        });
+    </script>
+</body>
+</html>
